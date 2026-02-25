@@ -20,12 +20,12 @@ package org.apache.flink.fs.s3.common.token;
 
 import org.apache.flink.util.InstantiationUtil;
 
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import org.apache.hadoop.fs.s3a.auth.NoAwsCredentialsException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,7 +52,8 @@ class DynamicTemporaryAWSCredentialsProviderTest {
         DynamicTemporaryAWSCredentialsProvider provider =
                 new DynamicTemporaryAWSCredentialsProvider();
 
-        assertThatThrownBy(provider::getCredentials).isInstanceOf(NoAwsCredentialsException.class);
+        assertThatThrownBy(provider::resolveCredentials)
+                .isInstanceOf(NoAwsCredentialsException.class);
     }
 
     @Test
@@ -60,7 +61,11 @@ class DynamicTemporaryAWSCredentialsProviderTest {
         DynamicTemporaryAWSCredentialsProvider provider =
                 new DynamicTemporaryAWSCredentialsProvider();
         Credentials credentials =
-                new Credentials(ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN, null);
+                Credentials.builder()
+                        .accessKeyId(ACCESS_KEY_ID)
+                        .secretAccessKey(SECRET_ACCESS_KEY)
+                        .sessionToken(SESSION_TOKEN)
+                        .build();
         AbstractS3DelegationTokenReceiver receiver =
                 new AbstractS3DelegationTokenReceiver() {
                     @Override
@@ -70,11 +75,10 @@ class DynamicTemporaryAWSCredentialsProviderTest {
                 };
 
         receiver.onNewTokensObtained(InstantiationUtil.serializeObject(credentials));
-        BasicSessionCredentials returnedCredentials =
-                (BasicSessionCredentials) provider.getCredentials();
-        assertThat(returnedCredentials.getAWSAccessKeyId()).isEqualTo(credentials.getAccessKeyId());
-        assertThat(returnedCredentials.getAWSSecretKey())
-                .isEqualTo(credentials.getSecretAccessKey());
-        assertThat(returnedCredentials.getSessionToken()).isEqualTo(credentials.getSessionToken());
+        AwsSessionCredentials returnedCredentials =
+                (AwsSessionCredentials) provider.resolveCredentials();
+        assertThat(returnedCredentials.accessKeyId()).isEqualTo(credentials.accessKeyId());
+        assertThat(returnedCredentials.secretAccessKey()).isEqualTo(credentials.secretAccessKey());
+        assertThat(returnedCredentials.sessionToken()).isEqualTo(credentials.sessionToken());
     }
 }

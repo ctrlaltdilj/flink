@@ -25,14 +25,14 @@ import org.apache.flink.core.security.token.DelegationTokenProvider;
 import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.StringUtils;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.securitytoken.model.GetSessionTokenResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
 
 import java.util.Optional;
 
@@ -87,22 +87,23 @@ public abstract class AbstractS3DelegationTokenProvider implements DelegationTok
     public ObtainedDelegationTokens obtainDelegationTokens() throws Exception {
         LOG.info("Obtaining session credentials token with access key: {}", accessKey);
 
-        AWSSecurityTokenService stsClient =
-                AWSSecurityTokenServiceClientBuilder.standard()
-                        .withRegion(region)
-                        .withCredentials(
-                                new AWSStaticCredentialsProvider(
-                                        new BasicAWSCredentials(accessKey, secretKey)))
-                        .build();
-        GetSessionTokenResult sessionTokenResult = stsClient.getSessionToken();
-        Credentials credentials = sessionTokenResult.getCredentials();
-        LOG.info(
-                "Session credentials obtained successfully with access key: {} expiration: {}",
-                credentials.getAccessKeyId(),
-                credentials.getExpiration());
+        try (StsClient stsClient =
+                StsClient.builder()
+                        .region(Region.of(region))
+                        .credentialsProvider(
+                                StaticCredentialsProvider.create(
+                                        AwsBasicCredentials.create(accessKey, secretKey)))
+                        .build()) {
+            GetSessionTokenResponse sessionTokenResponse = stsClient.getSessionToken();
+            Credentials credentials = sessionTokenResponse.credentials();
+            LOG.info(
+                    "Session credentials obtained successfully with access key: {} expiration: {}",
+                    credentials.accessKeyId(),
+                    credentials.expiration());
 
-        return new ObtainedDelegationTokens(
-                InstantiationUtil.serializeObject(credentials),
-                Optional.of(credentials.getExpiration().getTime()));
+            return new ObtainedDelegationTokens(
+                    InstantiationUtil.serializeObject(credentials),
+                    Optional.of(credentials.expiration().toEpochMilli()));
+        }
     }
 }

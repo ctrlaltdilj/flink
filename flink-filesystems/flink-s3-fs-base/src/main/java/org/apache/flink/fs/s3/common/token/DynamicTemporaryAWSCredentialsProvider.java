@@ -20,15 +20,14 @@ package org.apache.flink.fs.s3.common.token;
 
 import org.apache.flink.annotation.Internal;
 
-import com.amazonaws.SdkBaseException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.s3a.auth.NoAwsCredentialsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.net.URI;
 
@@ -39,7 +38,7 @@ import java.net.URI;
  * not fail in creation because that will break a chain of credential providers.
  */
 @Internal
-public class DynamicTemporaryAWSCredentialsProvider implements AWSCredentialsProvider {
+public class DynamicTemporaryAWSCredentialsProvider implements AwsCredentialsProvider {
 
     public static final String NAME = DynamicTemporaryAWSCredentialsProvider.class.getName();
 
@@ -53,20 +52,15 @@ public class DynamicTemporaryAWSCredentialsProvider implements AWSCredentialsPro
     public DynamicTemporaryAWSCredentialsProvider(URI uri, Configuration conf) {}
 
     @Override
-    public AWSCredentials getCredentials() throws SdkBaseException {
+    public AwsCredentials resolveCredentials() {
         Credentials credentials = AbstractS3DelegationTokenReceiver.getCredentials();
         if (credentials == null) {
             throw new NoAwsCredentialsException(COMPONENT);
         }
         LOG.debug("Providing session credentials");
-        return new BasicSessionCredentials(
-                credentials.getAccessKeyId(),
-                credentials.getSecretAccessKey(),
-                credentials.getSessionToken());
-    }
-
-    @Override
-    public void refresh() {
-        // Intentionally blank. Credentials are updated by S3DelegationTokenReceiver
+        return AwsSessionCredentials.create(
+                credentials.accessKeyId(),
+                credentials.secretAccessKey(),
+                credentials.sessionToken());
     }
 }
