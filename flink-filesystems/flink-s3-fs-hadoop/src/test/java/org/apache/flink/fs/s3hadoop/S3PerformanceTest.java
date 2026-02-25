@@ -65,9 +65,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Tests are skipped if S3 credentials are not available in the environment.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class S3PerformanceITCase {
+class S3PerformanceTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(S3PerformanceITCase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(S3PerformanceTest.class);
 
     private static final int KB = 1024;
     private static final int MB = 1024 * KB;

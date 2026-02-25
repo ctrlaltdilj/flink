@@ -277,6 +277,16 @@ under the License.
 			<artifactId>sso</artifactId>
 			<version>${fs.s3.aws.sdk2.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>auth</artifactId>
+			<version>${fs.s3.aws.sdk2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-transfer-manager</artifactId>
+			<version>${fs.s3.aws.sdk2.version}</version>
+		</dependency>
 
 		<!-- flink-runtime and curator dependencies are needed for the HAJobRunOnMinioS3StoreITCase -->
 		<dependency>
