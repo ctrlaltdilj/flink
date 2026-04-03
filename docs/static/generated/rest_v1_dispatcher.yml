@@ -51,6 +51,44 @@ paths:
       responses:
         "202":
           description: The request was successful.
+  /applications/{applicationid}/exceptions:
+    get:
+      description: Returns exception history for an application.
+      operationId: getApplicationExceptions
+      parameters:
+      - name: applicationid
+        in: path
+        description: 32-character hexadecimal string value that identifies an application.
+        required: true
+        schema:
+          $ref: "#/components/schemas/ApplicationID"
+      responses:
+        "200":
+          description: The request was successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationExceptionsInfoWithHistory"
+  /applications/{applicationid}/jobmanager/config:
+    get:
+      description: Returns the jobmanager's configuration of a specific application.
+      operationId: getJobManagerApplicationConfiguration
+      parameters:
+      - name: applicationid
+        in: path
+        description: 32-character hexadecimal string value that identifies an application.
+        required: true
+        schema:
+          $ref: "#/components/schemas/ApplicationID"
+      responses:
+        "200":
+          description: The request was successful.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConfigurationInfoEntry"
   /cluster:
     delete:
       description: Shuts down the cluster
@@ -878,6 +916,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JobPlanInfo"
+  /jobs/{jobid}/rescales/config:
+    get:
+      description: Returns the job rescale configuration.
+      operationId: getJobRescaleConfig
+      parameters:
+      - name: jobid
+        in: path
+        description: 32-character hexadecimal string value that identifies a job.
+        required: true
+        schema:
+          $ref: "#/components/schemas/JobID"
+      responses:
+        "200":
+          description: The request was successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRescaleConfigInfo"
   /jobs/{jobid}/rescaling:
     patch:
       description: Triggers the rescaling of a job. This async operation would return
@@ -1804,6 +1860,30 @@ components:
           additionalProperties:
             type: integer
             format: int64
+    ApplicationExceptionHistory:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicationExceptionInfo"
+    ApplicationExceptionInfo:
+      type: object
+      properties:
+        exceptionName:
+          type: string
+        jobId:
+          $ref: "#/components/schemas/JobID"
+        stacktrace:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+    ApplicationExceptionsInfoWithHistory:
+      type: object
+      properties:
+        exceptionHistory:
+          $ref: "#/components/schemas/ApplicationExceptionHistory"
     ApplicationID:
       type: object
       properties:
@@ -2506,18 +2586,18 @@ components:
           format: int64
         jid:
           $ref: "#/components/schemas/JobID"
+        jobType:
+          $ref: "#/components/schemas/JobType"
         last-modification:
           type: integer
           format: int64
         name:
           type: string
-        jobType:
-          $ref: "#/components/schemas/JobType"
-        schedulerType:
-          $ref: "#/components/schemas/SchedulerType"
         pending-operators:
           type: integer
           format: int32
+        schedulerType:
+          $ref: "#/components/schemas/SchedulerType"
         start-time:
           type: integer
           format: int64
@@ -2545,8 +2625,6 @@ components:
           $ref: "#/components/schemas/JobID"
         job-type:
           $ref: "#/components/schemas/JobType"
-        schedulerType:
-          $ref: "#/components/schemas/SchedulerType"
         maxParallelism:
           type: integer
           format: int64
@@ -2560,6 +2638,8 @@ components:
           format: int32
         plan:
           $ref: "#/components/schemas/Plan"
+        schedulerType:
+          $ref: "#/components/schemas/SchedulerType"
         start-time:
           type: integer
           format: int64
@@ -2659,6 +2739,35 @@ components:
       properties:
         plan:
           $ref: "#/components/schemas/Plan"
+    JobRescaleConfigInfo:
+      type: object
+      properties:
+        executingCooldownTimeoutInMillis:
+          type: integer
+          format: int64
+        executingResourceStabilizationTimeoutInMillis:
+          type: integer
+          format: int64
+        maximumDelayForTriggeringRescaleInMillis:
+          type: integer
+          format: int64
+        rescaleHistoryMax:
+          type: integer
+          format: int32
+        rescaleOnFailedCheckpointCount:
+          type: integer
+          format: int32
+        schedulerExecutionMode:
+          $ref: "#/components/schemas/SchedulerExecutionMode"
+        slotIdleTimeoutInMillis:
+          type: integer
+          format: int64
+        submissionResourceStabilizationTimeoutInMillis:
+          type: integer
+          format: int64
+        submissionResourceWaitTimeoutInMillis:
+          type: integer
+          format: int64
     JobResourceRequirementsBody:
       type: object
       additionalProperties:
@@ -2670,8 +2779,15 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/SerializedValueOptionalFailureObject"
+        applicationId:
+          $ref: "#/components/schemas/ApplicationID"
+        endTime:
+          type: integer
+          format: int64
         jobId:
           $ref: "#/components/schemas/JobID"
+        jobName:
+          type: string
         jobStatus:
           $ref: "#/components/schemas/JobStatus"
         netRuntime:
@@ -2679,6 +2795,9 @@ components:
           format: int64
         serializedThrowable:
           $ref: "#/components/schemas/SerializedThrowable"
+        startTime:
+          type: integer
+          format: int64
         success:
           type: boolean
     JobStatus:
@@ -3043,12 +3162,16 @@ components:
           type: string
         triggerId:
           $ref: "#/components/schemas/TriggerId"
+    SchedulerExecutionMode:
+      type: string
+      enum:
+      - REACTIVE
     SchedulerType:
       type: string
       enum:
-        - Default
-        - Adaptive
-        - AdaptiveBatch
+      - Default
+      - Adaptive
+      - AdaptiveBatch
     SerializedThrowable:
       type: object
       properties:

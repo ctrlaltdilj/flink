@@ -67,6 +67,8 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
 
     private final @Nullable SqlRefreshMode refreshMode;
 
+    private final @Nullable SqlStartMode startMode;
+
     private final SqlNode asQuery;
 
     public SqlCreateMaterializedTable(
@@ -82,6 +84,7 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
             SqlNodeList propertyList,
             @Nullable SqlIntervalLiteral freshness,
             @Nullable SqlRefreshMode refreshMode,
+            @Nullable SqlStartMode startMode,
             SqlNode asQuery) {
         super(operator, pos, tableName, false, false, false, propertyList, comment);
         this.columnList = columnList;
@@ -93,6 +96,7 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
         requireNonNull(propertyList, "propertyList should not be null");
         this.freshness = freshness;
         this.refreshMode = refreshMode;
+        this.startMode = startMode;
         this.asQuery = requireNonNull(asQuery, "asQuery should not be null");
     }
 
@@ -112,6 +116,10 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
 
     public SqlNodeList getColumnList() {
         return columnList;
+    }
+
+    public List<SqlTableConstraint> getTableConstraints() {
+        return tableConstraints;
     }
 
     public Optional<SqlWatermark> getWatermark() {
@@ -134,6 +142,11 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
     @Nullable
     public SqlRefreshMode getRefreshMode() {
         return refreshMode;
+    }
+
+    @Nullable
+    public SqlStartMode getStartMode() {
+        return startMode;
     }
 
     public SqlNode getAsQuery() {
@@ -173,6 +186,7 @@ public class SqlCreateMaterializedTable extends SqlCreateObject implements Exten
         SqlUnparseUtils.unparseDistribution(distribution, writer, leftPrec, rightPrec);
         SqlUnparseUtils.unparsePartitionKeyList(partitionKeyList, writer, leftPrec, rightPrec);
         SqlUnparseUtils.unparseProperties(properties, writer, leftPrec, rightPrec);
+        SqlUnparseUtils.unparseStartMode(startMode, writer);
         SqlUnparseUtils.unparseFreshness(freshness, true, writer, leftPrec, rightPrec);
         SqlUnparseUtils.unparseRefreshMode(refreshMode, writer);
         SqlUnparseUtils.unparseAsQuery(asQuery, writer, leftPrec, rightPrec);

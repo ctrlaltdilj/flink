@@ -130,7 +130,8 @@ public class ArchivedApplicationStoreTestUtils {
                             "test-application-" + i,
                             state,
                             new long[] {1L, 1L, 1L, 1L, 1L, 1L, 1L},
-                            jobs));
+                            jobs,
+                            Collections.emptyList()));
         }
 
         return archivedApplications;

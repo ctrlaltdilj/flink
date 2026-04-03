@@ -202,6 +202,56 @@
       }
     }
   }, {
+    "url" : "/applications/:applicationid/exceptions",
+    "method" : "GET",
+    "status-code" : "200 OK",
+    "file-upload" : false,
+    "path-parameters" : {
+      "pathParameters" : [ {
+        "key" : "applicationid"
+      } ]
+    },
+    "query-parameters" : {
+      "queryParameters" : [ ]
+    },
+    "request" : {
+      "type" : "object",
+      "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:EmptyRequestBody"
+    },
+    "response" : {
+      "type" : "object",
+      "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:ApplicationExceptionsInfoWithHistory",
+      "properties" : {
+        "exceptionHistory" : {
+          "type" : "object",
+          "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:ApplicationExceptionsInfoWithHistory:ApplicationExceptionHistory",
+          "properties" : {
+            "entries" : {
+              "type" : "array",
+              "items" : {
+                "type" : "object",
+                "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:ApplicationExceptionsInfoWithHistory:ApplicationExceptionInfo",
+                "properties" : {
+                  "exceptionName" : {
+                    "type" : "string"
+                  },
+                  "stacktrace" : {
+                    "type" : "string"
+                  },
+                  "timestamp" : {
+                    "type" : "integer"
+                  },
+                  "jobId" : {
+                    "type" : "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
     "url" : "/cluster",
     "method" : "DELETE",
     "status-code" : "200 OK",
@@ -4728,6 +4778,57 @@
               }
             }
           }
+        }
+      }
+    }
+  }, {
+    "url" : "/jobs/:jobid/rescales/config",
+    "method" : "GET",
+    "status-code" : "200 OK",
+    "file-upload" : false,
+    "path-parameters" : {
+      "pathParameters" : [ {
+        "key" : "jobid"
+      } ]
+    },
+    "query-parameters" : {
+      "queryParameters" : [ ]
+    },
+    "request" : {
+      "type" : "object",
+      "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:EmptyRequestBody"
+    },
+    "response" : {
+      "type" : "object",
+      "id" : "urn:jsonschema:org:apache:flink:runtime:rest:messages:job:rescales:JobRescaleConfigInfo",
+      "properties" : {
+        "executingCooldownTimeoutInMillis" : {
+          "type" : "integer"
+        },
+        "executingResourceStabilizationTimeoutInMillis" : {
+          "type" : "integer"
+        },
+        "maximumDelayForTriggeringRescaleInMillis" : {
+          "type" : "integer"
+        },
+        "rescaleHistoryMax" : {
+          "type" : "integer"
+        },
+        "rescaleOnFailedCheckpointCount" : {
+          "type" : "integer"
+        },
+        "schedulerExecutionMode" : {
+          "type" : "string",
+          "enum" : [ "REACTIVE" ]
+        },
+        "slotIdleTimeoutInMillis" : {
+          "type" : "integer"
+        },
+        "submissionResourceStabilizationTimeoutInMillis" : {
+          "type" : "integer"
+        },
+        "submissionResourceWaitTimeoutInMillis" : {
+          "type" : "integer"
         }
       }
     }

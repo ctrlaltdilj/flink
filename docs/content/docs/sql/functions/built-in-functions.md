@@ -110,6 +110,10 @@ Known Limitations:
 
 {{< sql_functions "hashfunctions" >}}
 
+### Bitmap Functions
+
+{{< sql_functions "bitmap" >}}
+
 ### Auxiliary Functions
 
 {{< sql_functions "auxiliary" >}}
@@ -120,6 +124,16 @@ Aggregate Functions
 The aggregate functions take an expression across all the rows as the input and return a single aggregated value as the result. 
 
 {{< sql_functions "aggregate" >}}
+
+### Bitmap Aggregate Functions
+
+**Performance Tips:**
+
+- It is strongly recommended to enable [MiniBatch aggregation]({{< ref "docs/dev/table/tuning" >}}) or use bitmap aggregate functions within [window aggregations]({{< ref "docs/sql/reference/queries/window-agg" >}}) to optimize state access overhead and significantly improve performance.
+- Bitmap aggregate functions perform best with append-only input. Performance degrades noticeably with retraction input, so avoid multi-level GROUP BY aggregations on BITMAP columns when possible.
+- For cardinality-only scenarios where the intermediate bitmap is not needed, prefer `BITMAP_XX_CARDINALITY_AGG()` over `BITMAP_CARDINALITY(BITMAP_XX_AGG())`. They are functionally equivalent, but the former avoids materializing the intermediate bitmap and performs better.
+
+{{< sql_functions "bitmapagg" >}}
 
 Time Interval and Point Unit Specifiers
 ---------------------------------------
