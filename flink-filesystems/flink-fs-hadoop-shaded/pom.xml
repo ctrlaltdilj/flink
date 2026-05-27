@@ -191,6 +191,21 @@ under the License.
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-reload4j</artifactId>
 				</exclusion>
+				<!-- Hadoop 3.4.x declares Netty as a compile-time dep of hadoop-common,
+				     but hadoop-common's compiled bytecode contains zero io.netty.*
+				     references (verified empirically). The dep exists for sibling
+				     Hadoop modules (hadoop-hdfs-client, hadoop-kms-server) that this
+				     shaded jar does NOT bundle. Exclude both transitive roots
+				     (netty-handler and netty-transport-native-epoll) to drop the
+				     entire 7-artifact Netty tree. -->
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-handler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport-native-epoll</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 	</dependencies>
