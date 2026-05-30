@@ -84,14 +84,22 @@ under the License.
 			<scope>test</scope>
 		</dependency>
 
-		<!-- S3 base - exclude AWS SDK v1 -->
+		<!--
+			This plugin builds on Hadoop's s3a connector (hadoop-aws), which migrated
+			to AWS SDK v2 (`software.amazon.awssdk:*`) in the Hadoop 3.4.x line. The
+			v2 modules we actually bundle are declared explicitly further down.
+
+			The shared `flink-s3-fs-base` parent still pulls AWS SDK v1
+			(`com.amazonaws:*`) transitively because the sibling `flink-s3-fs-presto`
+			plugin remains on v1, since we are using AWS SDK V2 with 3.4.x, we don't 
+			need AWS SDK V1 (`com.amazonaws:*`)
+		-->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-s3-fs-base</artifactId>
 			<version>${project.version}</version>
 			<optional>${flink.markBundledAsOptional}</optional>
 			<exclusions>
-				<!-- Exclude all AWS SDK v1 dependencies - we use SDK v2 -->
 				<exclusion>
 					<groupId>com.amazonaws</groupId>
 					<artifactId>aws-java-sdk-core</artifactId>
