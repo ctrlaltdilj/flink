@@ -32,7 +32,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
-import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
 
 import java.util.Optional;
@@ -88,20 +87,15 @@ public abstract class HadoopS3DelegationTokenProvider implements DelegationToken
     public ObtainedDelegationTokens obtainDelegationTokens() throws Exception {
         LOG.info("Obtaining session credentials token with access key: {}", accessKey);
 
-        // Create AWS SDK v2 STS client
-        StsClient stsClient =
+        try (StsClient stsClient =
                 StsClient.builder()
                         .region(Region.of(region))
                         .credentialsProvider(
                                 StaticCredentialsProvider.create(
                                         AwsBasicCredentials.create(accessKey, secretKey)))
-                        .build();
-
-        try {
-            GetSessionTokenRequest request = GetSessionTokenRequest.builder().build();
-            GetSessionTokenResponse response = stsClient.getSessionToken(request);
-            Credentials credentials = response.credentials();
-
+                        .build()) {
+            GetSessionTokenResponse sessionTokenResponse = stsClient.getSessionToken();
+            Credentials credentials = sessionTokenResponse.credentials();
             LOG.info(
                     "Session credentials obtained successfully with access key: {} expiration: {}",
                     credentials.accessKeyId(),
@@ -110,8 +104,6 @@ public abstract class HadoopS3DelegationTokenProvider implements DelegationToken
             return new ObtainedDelegationTokens(
                     InstantiationUtil.serializeObject(credentials),
                     Optional.of(credentials.expiration().toEpochMilli()));
-        } finally {
-            stsClient.close();
         }
     }
 
